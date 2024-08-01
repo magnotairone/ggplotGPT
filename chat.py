@@ -9,6 +9,10 @@ from langchain.chains import create_history_aware_retriever
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
+import os
+
+os.environ["OPENAI_API_KEY"] = "SUA CHAVE AQUI"
+os.environ['PINECONE_API_KEY'] = 'SUA CHAVE AQUI'
 
 llm = ChatOpenAI(model = 'gpt-4o-mini', temperature = 0)
 
@@ -90,5 +94,3 @@ def obter_resposta(pergunta, id_sessao = 'abc123'):
     config = {'configurable': {'session_id': id_sessao}},
   )
   return resultado
-
-print('Estou em Fortaleza!!!!') 

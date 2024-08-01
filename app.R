@@ -1,15 +1,28 @@
 library(shiny)
 library(shinyChatR)
-library(shinyjs)  # Inclui o shinyjs para manipulação de elementos no UI
+library(shinyjs) 
 library(shinythemes) 
-library(reticulate)
 
-reticulate::use_virtualenv("langchain_rag")
+reticulate::virtualenv_create("ggplotgpt")
+
+reticulate::virtualenv_install(envname = "ggplotgpt",
+                               packages = c(
+                                 "langchain",
+                                 "langchain-community",
+                                 "pypdf",
+                                 "pinecone",
+                                 "langchain_pinecone",
+                                 "langchain-openai",
+                                 "pinecone-client[grpc]",
+                                 "langchain_openai"
+                               ))
+
+reticulate::use_virtualenv("ggplotgpt")
 
 reticulate::py_run_file("chat.py")
 
 obter_resposta_chat <- function(pergunta, id_sessao = "abc123"){
-  resultado = py$obter_resposta(pergunta, id_sessao)
+  resultado = reticulate::py$obter_resposta(pergunta, id_sessao)
   return(resultado$answer)
 }
 
@@ -18,7 +31,7 @@ id_chat <- as.character(round(runif(1, 1000000000000, 9999999999999)))
 id_sendMessageButton <- paste0(id_chat, "-chatFromSend")
 chat_user <- "Você"
 bot <- "ggplotGPT"
-bot_message <- "Hello!"
+bot_message <- "Olá! Me pergunte qualquer coisa sobre o pacote ggplot2!"
 
 chave_acesso = Sys.getenv("APP_ACESS_KEY")
 
@@ -40,7 +53,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       hidden(div(id = "chat_panel",
-                 chat_ui(id = id_chat, ui_title = "Chat Area", height = "600px", width = "100%")
+                 chat_ui(id = id_chat, ui_title = "Chat Area", height = "500px", width = "100%")
       )),
       width = 9
     )
@@ -64,15 +77,16 @@ server <- function(input, output, session) {
   chat <- chat_server(
     id = id_chat,
     chat_user = chat_user,
-    csv_path = csv_path 
+    csv_path = csv_path
   )
   
   observeEvent(input[[id_sendMessageButton]], {
+    
     dt <- chat_data$get_data()
     bot_message <- obter_resposta_chat(dt[.N, text], id_chat)
     chat_data$insert_message(user = bot,
-                            message = bot_message,
-                            time = strftime(Sys.time()))
+                             message = bot_message,
+                             time = strftime(Sys.time()))
   })
 }
 
